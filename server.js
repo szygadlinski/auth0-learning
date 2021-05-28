@@ -15,6 +15,7 @@ passport.use(new GoogleStrategy({
   callbackURL: 'http://localhost:8000/auth/google/callback',
 }, (accessToken, refreshToken, profile, done) => {
   done(null, profile);
+  console.log(profile);
 }));
 
 //serialize user when saving to session
@@ -49,6 +50,12 @@ app.get('/user/logged', (req, res) => {
 
 app.get('/user/no-permission', (req, res) => {
   res.render('noPermission');
+});
+
+app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
+
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/user/no-permission' }), (req, res) => {
+  res.redirect('/user/logged');
 });
 
 app.use('/', (req, res) => {
