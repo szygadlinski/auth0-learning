@@ -3,7 +3,29 @@ const cors = require('cors');
 const path = require('path');
 const hbs = require('express-handlebars');
 
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const session = require('express-session');
+
 const app = express();
+
+passport.use(new GoogleStrategy({
+  clientID: '904544264893-k4upf4ltg3jplfjr5fm7ai32tlur9b35.apps.googleusercontent.com',
+  clientSecret: '1mrA_syTmvL5bfwllpXjS32P',
+  callbackURL: 'http://localhost:8000/auth/google/callback',
+}, (accessToken, refreshToken, profile, done) => {
+  done(null, profile);
+}));
+
+//serialize user when saving to session
+passport.serializeUser((user, serialize) => {
+  serialize(null, user);
+});
+
+//deserialize user when reading from session
+passport.deserializeUser((obj, deserialize) => {
+  deserialize(null, obj);
+});
 
 app.engine('hbs', hbs({ extname: 'hbs', layoutsDir: './layouts', defaultLayout: 'main' }));
 app.set('view engine', '.hbs');
@@ -12,6 +34,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '/public')));
+
+app.use(session({ secret: 'anything' }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/', (req, res) => {
   res.render('index');
